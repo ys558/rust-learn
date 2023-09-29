@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "data_type"
+name = "a3_common_programming_concept"
 version = "0.1.0"
