@@ -1,5 +1,31 @@
 # 编程基础概念在 `Rust` 中的体现
 
+## 变量
+- 定义变量后，如果赋值后要改变，必须加上 `mut` 关键字，否则则不能改变其值。同样的，定义了 `const` 之后的常量，则不能加上 `mut`
+
+- 数字较大时，可以用下划线替代千分号分隔数字
+
+```rust
+// variables and constance
+let mut x:i32 = 5;
+println!("x value is {}", x);
+x = 6;
+println!("x value is changed: {}", x);
+
+const COUNT: u32 = 1_000_000;
+println!("COUNT value is {}", COUNT);
+```
+
+- 变量遮蔽(variable shadowing)，同一个作用域内，允许对同一变量名进行二次定义
+- 这样做的好处是方便，坏处是后期代码量大会使得代码难以维护，所以使用时应谨慎
+
+```rust
+// variable shadowing:
+let y: u32 = 7;
+println!("y value is {}", y);
+let y: &str = "eight";
+println!("y value is changed: {}", y);
+```
 ## 数据类型
 
 ### Intergers
