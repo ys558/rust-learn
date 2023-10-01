@@ -35,9 +35,52 @@ fn main() {
 	let (y, len) = calculate_str_length(x1);
 	println!("the length of {} is {}",  y, len);
 	
-	let str1 = String::from("uuuuuuuuu");
-	let length = str_length(&str1);
-	println!("the length of {} is {}", str1, length); // the length of uuuuuuuuu is 9
+	// & 借用：
+	/*
+	The Rules of References
+	1. At any given time, u can hv either one mutable reference
+	or any number of immutable refernces.
+	2. References must always be valid.
+	 */
+	let mut str1 = String::from("uuuuuuuuu");
+	let length = str_length(&mut str1);
+	println!("the length of {} is {}", str1, length); // the length of uuuuuuuuuooops is 14
+
+	// 可变引用：借用的值有严格的使用限制
+	let mut str2 = String::from("kkkkkkkk");
+	let r1 = &str2;
+	let r2 = &str2;
+	// let r3: = &mut str2; // 错误 ❌
+	println!("{}, {}", r1, r2); 
+	let r3 = &mut str2; // 正确
+	println!("r3 {}", r3); // r3 kkkkkkkk
+
+	// 悬空引用 Dangling References
+	// 具体见README.md
+
+	// Slice Type 切片类型 &str
+	let str3: String = String::from("hello world");
+	let hello3: &str = &str3[..5];
+	let world3: &str = &str3[6..];
+	
+	println!("str3 第一个词 {}", hello3); // str3 第一个词 hello
+	println!("str3 第二个词 {}", world3); // str3 第二个词 world
+
+	let str4: &str = "hello rust";
+	let hello4: &str = &str4[..5];
+	let rust4: &str = &str4[6..];
+	let hello_rust: &str = &str4[..];
+	println!("str4 第一个词 {}", hello4); // str4 第一个词 hello
+	println!("str4 第二个词 {}", rust4); // str4 第二个词 rust
+	println!("整个词 {}", hello_rust); // 整个词 hello rust
+
+	let word = first_word(&str3);
+	println!("word -> {}", word);
+
+	// array slice
+	let a = [1, 2, 3, 4, 5];
+	let slice = &a[1..3];
+	assert_eq!(slice, &[2, 3]);
 }
 
 fn takes_ownership(some_str: String) {
@@ -62,7 +105,21 @@ fn calculate_str_length(s: String) -> (String, usize) {
 	(s, length)
 }
 
-fn str_length(s: &String) -> usize {
+fn str_length(s: &mut String) -> usize {
+	s.push_str("ooops");
 	let length = s.len();
 	length
+}
+
+fn first_word (s: &str) -> &str {
+	let bytes = s.as_bytes();
+
+	for (i, &item) in bytes.iter().enumerate() {
+		if item == b' ' {
+			// 如果该句子有空格，则返回第一个元素
+			return &s[0..i];
+		}
+	}
+	// 如果没有空格则返回整个句子
+	&s[..]
 }

@@ -41,7 +41,8 @@ println!("y value is changed: {}", y);
 | 128-bit | i128 | u128 |  
 | arch | isize | usize |
 
-其取值范围分别是：`2`
+- 其取值范围分别是：2的8、16、32、64、128次方
+- `Signed`的数由于有负数的取值范围，所以比 `Unsigned` 取值范围减半
 
 | Type | Range |  
 | :--: | :--: |  

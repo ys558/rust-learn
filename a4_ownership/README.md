@@ -162,7 +162,7 @@ fn takes_and_gives_back(a_string: String) -> String {
 }
 ```
 
-### `&` 引用
+### `&` 引用及借用 (References and Borrowing)
 
 rust 允许使用 返回元组的解构
 
@@ -182,7 +182,7 @@ fn calculate_str_length(s: String) -> (String, usize) {
 }
 ```
 
-如果传进的函数的值 `x1` 要在外面获取，但又不需要将其传回作为返回值，就需要用到引用了：
+如果传进的函数的值 `x1` 要在外面获取，但又不需要将其传回作为返回值，就需要用到引用：
 
 ```rust
 fn main() {
@@ -192,9 +192,118 @@ fn main() {
 }
 
 fn str_length(s: &String) -> usize {
+	// s.push_str("ooops"); // err ❌
 	let length = s.len();
 	length
 }
 ```
 
-上面的代码中，调用str1时，加入了 `&` 符号，即引用，
+上面的代码中，调用str1时，加入了 `&` 符号，即引用
+- 函数里的引用变量会自行寻找值，而不是获取他的所有权，从而让进入函数的变量，在后续能被继续使用。
+- 同样的，借用的变量 `s` 则不能进行其他操作，因为仅仅是借用。
+
+### 可变引用（Mutable References）
+
+上面代码解决的办法就是将 `str1` 定义为可迭代操作 `mut`，以下是修改后的代码：
+
+```rust
+fn main() {
+	let mut str1 = String::from("uuuuuuuuu");
+	let length = str_length(&mut str1);
+	println!("the length of {} is {}", str1, length); // the length of uuuuuuuuuooops is 14
+}
+
+fn str_length(s: &mut String) -> usize {
+	s.push_str("ooops");
+	let length = s.len();
+	length
+}
+```
+
+而引用有严格的限制, 例如以下代码：
+```rust
+let mut str2 = String::from("kkkkkkkk");
+let r1 = &str2;
+let r2 = &str2;
+// let r3: = &mut str2; // 错误 ❌
+println!("{}, {}", r1, r2); 
+```
+
+上面定义的 `r3` 会报错，是因为：
+- `r3` 前定义的 `r1` 和 `r2` 已定义为非 `mut`变量，他们还未被使用
+- 要解决以上报错，则须将其移动到 print 之后即可，因 `r1`, `r2` 定义后已被使用过
+
+修改后：
+
+```rust
+let mut str2 = String::from("kkkkkkkk");
+let r1 = &str2;
+let r2 = &str2;
+println!("{}, {}", r1, r2); 
+let r3 = &mut str2; // 正确 r1, r2定义后已被使用过，out of scope
+println!("r3 {}", r3); // r3 kkkkkkkk
+```
+
+### 悬空引用（Dangling References）
+
+在函数内部，引用值不能作为返回值！这是因为引用值 `s` 已超出范围, `s` 值已被丢弃，以下是错误❌代码示范：
+
+```rust
+fn dangle() -> &String { // dangle returns a reference to a String
+
+	let s = String::from("hello"); // s is a new String
+
+	&s // we return a reference to the String, s
+} // Here, s goes out of scope, and is dropped. Its memory goes away.
+// Danger! ❌
+```
+
+### 字符串切片类型（The Slice Type）
+
+Rust 的切片是一种比较特殊的形式，这里我们单独讨论。以下是官方文档对切片所有权的总结：
+
+> Slices let you reference a contiguous sequence of elements in a collection rather than the whole collection. A slice is a kind of reference, so it does not have ownership.
+
+切片允许您引用集合中连续的元素序列，而不是整个集合。切片是一种引用，因此它没有所有权。
+
+让我们看一个切片的例子，
+```rust
+let str3: String = String::from("hello world");
+let hello3: &str = &str3[..5];
+let world3: &str = &str3[6..];
+
+println!("str3 第一个词 {}", hello); // str3 第一个词 hello
+```
+上面的而切片有着一个特殊的类型 `&str`, 同样的，定义字符串时，也可将其定义为 `&str`，就像下面的例子：
+```rust
+let str4: &str = "hello rust";
+let hello4: &str = &str4[..5];
+let rust4: &str = &str4[6..];
+let hello_rust = &str[..];
+println!("str4 第一个词 {}", hello4); // str4 第一个词 hello
+println!("str4 第二个词 {}", rust4); // str4 第二个词 rust
+println!("整个词 {}", hello_rust); // 整个词 hello rust
+```
+封装寻找第一个词的函数：
+```rust
+fn main() {
+	let str3: String = String::from("hello world");
+
+	let word = first_word(&str3);
+	println!("word -> {}", word);
+}
+
+fn first_word (s: &str) -> &str {
+	let bytes = s.as_bytes();
+
+	for (i, &item) in bytes.iter().enumerate() {
+		if item == b' ' {
+			// 如果该句子有空格，则返回第一个元素
+			return &s[0..i];
+		}
+	}
+	// 如果没有空格则返回整个句子
+	&s[..]
+}
+```
+可以看出，我们传入和返回的类型均为 `&str`
